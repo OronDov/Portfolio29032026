@@ -1,0 +1,73 @@
+'use client'
+import { useState, useEffect, Suspense } from 'react'
+import { signIn } from 'next-auth/react'
+import { useRouter, useSearchParams } from 'next/navigation'
+
+function LoginForm() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [showPass, setShowPass] = useState(false)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+    if (searchParams.get('error')) setError('Invalid email or password.')
+  }, [searchParams])
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    if (!email || !password) { setError('Please fill in all fields.'); return }
+    setLoading(true); setError('')
+    const result = await signIn('credentials', { email, password, redirect: false })
+    setLoading(false)
+    if (result?.ok) { router.push('/'); router.refresh() }
+    else setError('Invalid email or password.')
+  }
+
+  return (
+    <div style={{ minHeight:'100vh', background:'#080811', display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'system-ui', padding:'24px', position:'relative', overflow:'hidden' }}>
+      {mounted && <>
+        <div style={{ position:'fixed', top:'15%', left:'10%', width:'500px', height:'500px', borderRadius:'50%', background:'radial-gradient(circle,rgba(124,58,237,0.12) 0%,transparent 70%)', filter:'blur(60px)', pointerEvents:'none' }} />
+        <div style={{ position:'fixed', bottom:'10%', right:'10%', width:'400px', height:'400px', borderRadius:'50%', background:'radial-gradient(circle,rgba(59,130,246,0.1) 0%,transparent 70%)', filter:'blur(60px)', pointerEvents:'none' }} />
+        <div style={{ position:'fixed', inset:0, backgroundImage:'linear-gradient(rgba(139,92,246,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(139,92,246,0.04) 1px,transparent 1px)', backgroundSize:'60px 60px', pointerEvents:'none' }} />
+      </>}
+      <div style={{ position:'relative', zIndex:10, width:'100%', maxWidth:'420px', opacity:mounted?1:0, transform:mounted?'translateY(0)':'translateY(20px)', transition:'all 0.6s ease' }}>
+        <div style={{ textAlign:'center', marginBottom:'32px' }}>
+          <div style={{ display:'inline-flex', alignItems:'center', justifyContent:'center', width:'56px', height:'56px', borderRadius:'16px', background:'linear-gradient(135deg,#7c3aed,#3b82f6)', fontSize:'22px', fontWeight:'800', color:'white', boxShadow:'0 0 40px rgba(124,58,237,0.4)', marginBottom:'16px' }}>O</div>
+          <h1 style={{ fontSize:'22px', fontWeight:'700', color:'white', margin:'0 0 4px' }}>orondov.com</h1>
+          <p style={{ fontSize:'14px', color:'rgba(255,255,255,0.35)', margin:0 }}>Private portfolio — authorized access only</p>
+        </div>
+        <div style={{ background:'rgba(255,255,255,0.04)', backdropFilter:'blur(40px)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:'24px', padding:'40px 36px', boxShadow:'0 40px 80px rgba(0,0,0,0.5)' }}>
+          <h2 style={{ fontSize:'20px', fontWeight:'700', color:'white', marginBottom:'8px' }}>Welcome back</h2>
+          <p style={{ fontSize:'14px', color:'rgba(255,255,255,0.4)', marginBottom:'28px' }}>Sign in to access the portfolio</p>
+          {error && <div style={{ padding:'12px 16px', background:'rgba(239,68,68,0.1)', border:'1px solid rgba(239,68,68,0.25)', borderRadius:'12px', color:'#fca5a5', fontSize:'13px', marginBottom:'20px' }}>⚠️ {error}</div>}
+          <form onSubmit={handleSubmit}>
+            <div style={{ marginBottom:'16px' }}>
+              <label style={{ display:'block', fontSize:'12px', fontWeight:'600', color:'rgba(255,255,255,0.5)', letterSpacing:'0.5px', marginBottom:'8px', textTransform:'uppercase' }}>Email</label>
+              <input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="your@email.com" autoComplete="email" style={{ width:'100%', padding:'13px 16px', background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:'12px', color:'white', fontSize:'15px', outline:'none', fontFamily:'system-ui', boxSizing:'border-box' }} onFocus={e=>{e.target.style.borderColor='rgba(124,58,237,0.6)';e.target.style.background='rgba(124,58,237,0.06)'}} onBlur={e=>{e.target.style.borderColor='rgba(255,255,255,0.1)';e.target.style.background='rgba(255,255,255,0.05)'}} />
+            </div>
+            <div style={{ marginBottom:'24px' }}>
+              <label style={{ display:'block', fontSize:'12px', fontWeight:'600', color:'rgba(255,255,255,0.5)', letterSpacing:'0.5px', marginBottom:'8px', textTransform:'uppercase' }}>Password</label>
+              <div style={{ position:'relative' }}>
+                <input type={showPass?'text':'password'} value={password} onChange={e=>setPassword(e.target.value)} placeholder="••••••••" autoComplete="current-password" style={{ width:'100%', padding:'13px 48px 13px 16px', background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:'12px', color:'white', fontSize:'15px', outline:'none', fontFamily:'system-ui', boxSizing:'border-box' }} onFocus={e=>{e.target.style.borderColor='rgba(124,58,237,0.6)';e.target.style.background='rgba(124,58,237,0.06)'}} onBlur={e=>{e.target.style.borderColor='rgba(255,255,255,0.1)';e.target.style.background='rgba(255,255,255,0.05)'}} />
+                <button type="button" onClick={()=>setShowPass(!showPass)} style={{ position:'absolute', right:'14px', top:'50%', transform:'translateY(-50%)', background:'none', border:'none', cursor:'pointer', color:'rgba(255,255,255,0.35)', fontSize:'16px' }}>{showPass?'🙈':'👁️'}</button>
+              </div>
+            </div>
+            <button type="submit" disabled={loading} style={{ width:'100%', padding:'14px', background:loading?'rgba(124,58,237,0.4)':'linear-gradient(135deg,#7c3aed,#3b82f6)', border:'none', borderRadius:'12px', color:'white', fontSize:'15px', fontWeight:'700', cursor:loading?'not-allowed':'pointer', fontFamily:'system-ui', boxShadow:'0 0 30px rgba(124,58,237,0.35)', display:'flex', alignItems:'center', justifyContent:'center' }}>
+              {loading?'Signing in...':'Sign In →'}
+            </button>
+          </form>
+        </div>
+        <p style={{ textAlign:'center', marginTop:'24px', fontSize:'12px', color:'rgba(255,255,255,0.2)' }}>© {new Date().getFullYear()} Oron Dov · Private Access</p>
+      </div>
+    </div>
+  )
+}
+
+export default function LoginPage() {
+  return <Suspense><LoginForm /></Suspense>
+}
